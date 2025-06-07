@@ -15,37 +15,48 @@ class SearchPage extends StatefulWidget {
 }
 
 class HomePageState extends State<SearchPage> {
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocationAndFetchWeather();
-  }
-
   final weatherService = WeatherService();
-
-  Future<void> _getCurrentLocationAndFetchWeather() async {
-    final position = await getCurrentLocation();
-    if (position == null) return;
-
-    final data = await weatherService.getWeatherByCoordinates(
-      position.latitude,
-      position.longitude,
-    );
-
-    setState(() {
-      weatherData = data;
-    });
-  }
 
   final TextEditingController cityController = TextEditingController();
   Map<String, dynamic> weatherData = {};
 
-  Future<void> fetchData(String cidade) async {
-    final data = await weatherService.getWeather(cidade);
-
-    setState(() {
-      weatherData = data;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getCurrentLocationAndFetchWeather(context);
     });
+  }
+
+  Future<void> _getCurrentLocationAndFetchWeather(BuildContext context) async {
+    try {
+      final position = await getCurrentLocation();
+      if (position == null) return;
+
+      final data = await weatherService.getWeatherByCoordinates(
+        position.latitude,
+        position.longitude,
+        context,
+      );
+
+      setState(() {
+        weatherData = data;
+      });
+    } catch (e) {
+      print('Erro ao buscar clima por localização: $e');
+    }
+  }
+
+  Future<void> fetchData(String cidade, BuildContext context) async {
+    try {
+      final data = await weatherService.getWeather(cidade, context);
+
+      setState(() {
+        weatherData = data;
+      });
+    } catch (e) {
+      print('Erro ao buscar clima pela cidade: $e');
+    }
   }
 
   @override
@@ -65,13 +76,13 @@ class HomePageState extends State<SearchPage> {
                   onPressed: () {
                     final cidade = cityController.text.trim();
                     if (cidade.isNotEmpty) {
-                      fetchData(cidade);
+                      fetchData(cidade, context);
                     }
                   },
                 ),
               ),
             ),
-            weatherData == null
+            weatherData.isEmpty
                 ? Center(child: Text('Sem dados'))
                 : WeatherCard(data: weatherData),
           ],
