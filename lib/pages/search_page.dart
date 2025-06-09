@@ -16,9 +16,9 @@ class SearchPage extends StatefulWidget {
 
 class SearchPageState extends State<SearchPage> {
   final weatherService = WeatherService();
-
   final TextEditingController cityController = TextEditingController();
   Map<String, dynamic> weatherData = {};
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -29,6 +29,7 @@ class SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _getCurrentLocationAndFetchWeather(BuildContext context) async {
+    setState(() => isLoading = true);
     try {
       final position = await getCurrentLocation();
       if (position == null) return;
@@ -44,10 +45,13 @@ class SearchPageState extends State<SearchPage> {
       });
     } catch (e) {
       print('Erro ao buscar clima por localização: $e');
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
   Future<void> fetchData(String cidade, BuildContext context) async {
+    setState(() => isLoading = true);
     try {
       final data = await weatherService.getWeather(cidade, context);
 
@@ -56,37 +60,50 @@ class SearchPageState extends State<SearchPage> {
       });
     } catch (e) {
       print('Erro ao buscar clima pela cidade: $e');
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Clima')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: cityController,
-              decoration: InputDecoration(
-                labelText: 'Digite a cidade',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () {
-                    final cidade = cityController.text.trim();
-                    if (cidade.isNotEmpty) {
-                      fetchData(cidade, context);
-                    }
-                  },
+      appBar: AppBar(title: const Text('Clima')),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: cityController,
+                  decoration: InputDecoration(
+                    labelText: 'Digite a cidade',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        final cidade = cityController.text.trim();
+                        if (cidade.isNotEmpty) {
+                          fetchData(cidade, context);
+                        }
+                      },
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                if (weatherData.isNotEmpty)
+                  WeatherCard(data: weatherData)
+                else
+                  const Center(child: Text('Sem dados')),
+              ],
             ),
-            weatherData.isEmpty
-                ? Center(child: Text('Sem dados'))
-                : WeatherCard(data: weatherData),
-          ],
-        ),
+          ),
+          if (isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }
