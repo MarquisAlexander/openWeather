@@ -15,7 +15,6 @@ class AppWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primarySwatch: Colors.red),
       home: HomePage(),
       routes: {'/search_page': (context) => const SearchPage()},
     );
