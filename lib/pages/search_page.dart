@@ -10,11 +10,11 @@ class SearchPage extends StatefulWidget {
 
   @override
   State<SearchPage> createState() {
-    return HomePageState();
+    return SearchPageState();
   }
 }
 
-class HomePageState extends State<SearchPage> {
+class SearchPageState extends State<SearchPage> {
   final weatherService = WeatherService();
 
   final TextEditingController cityController = TextEditingController();
