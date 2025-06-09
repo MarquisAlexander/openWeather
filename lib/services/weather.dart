@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class WeatherService {
   final Dio _dio = Dio();
-  final String _apiKey = '15ed53895e2c900e252f5c3da0663fa5';
   final String _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
 
   Future<Map<String, dynamic>> getWeather(
@@ -41,7 +41,7 @@ class WeatherService {
         _baseUrl,
         queryParameters: {
           ...params,
-          'appid': _apiKey,
+          'appid': dotenv.env['API_KEY'],
           'units': 'metric',
           'lang': 'pt_br',
         },
